@@ -119,11 +119,6 @@ PRODUCT_PACKAGES += \
 # HIDL
 $(call inherit-product, $(LOCAL_PATH)/hidl.mk)
 
-# Filesystem tools
-PRODUCT_PACKAGES += \
-    e2fsck_static \
-    resize2fs_static
-
 # IPv6 tethering
 PRODUCT_PACKAGES += \
     ebtables \
