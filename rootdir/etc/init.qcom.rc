@@ -38,7 +38,7 @@ on early-init
     chmod 0755 /sys/kernel/debug
 
 on init
-    export LD_SHIM_LIBS /system/lib/libril.so|libshim_ril.so:/system/bin/mpdecision|libshim_atomic.so
+    export LD_SHIM_LIBS /system/bin/mpdecision|libshim_atomic.so
 
     # Set permissions for efs partition
     mkdir /efs 0771 system radio
@@ -438,13 +438,6 @@ service qmuxd /system/bin/qmuxd
 
 service netmgrd /system/bin/netmgrd
     class main
-
-# Start ril-daemon
-service ril-daemon /vendor/bin/hw/rild
-    class main
-    user radio
-    group radio cache inet misc audio log readproc wakelock diag
-    capabilities BLOCK_SUSPEND NET_ADMIN NET_RAW
 
 # Adjust socket buffer to enlarge TCP receive window for high bandwidth
 # but only if ro.data.large_tcp_window_size property is set.
