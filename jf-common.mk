@@ -95,6 +95,8 @@ PRODUCT_COPY_FILES += \
 
 # Camera
 PRODUCT_PACKAGES += \
+    android.hardware.camera.provider@2.4-impl \
+    camera.device@1.0-impl.legacy \
     camera.msm8960 \
     Snap
     
@@ -103,6 +105,7 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.composer@2.1-impl \
     android.hardware.graphics.mapper@2.0-impl \
+    android.hardware.memtrack@1.0-impl \
     copybit.msm8960 \
     gralloc.msm8960 \
     hwcomposer.msm8960 \
@@ -113,12 +116,14 @@ PRODUCT_PACKAGES += \
 #PRODUCT_PACKAGES += \
 #    SamsungDoze
 
+# GPS HIDL
+PRODUCT_PACKAGES += \
+    android.hardware.gnss@1.0-impl
+
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.conf:/system/etc/gps.conf \
     $(LOCAL_PATH)/configs/sap.conf:/system/etc/sap.conf
-    
-# HIDL
-$(call inherit-product, $(LOCAL_PATH)/hidl.mk)
 
 # HIDL
 PRODUCT_COPY_FILES += \
