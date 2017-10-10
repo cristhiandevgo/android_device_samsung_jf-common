@@ -118,7 +118,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/sap.conf:/system/etc/sap.conf
     
 # HIDL
-    $(call inherit-product, $(LOCAL_PATH)/hidl.mk)
+$(call inherit-product, $(LOCAL_PATH)/hidl.mk)
 
 # HIDL
 PRODUCT_COPY_FILES += \
