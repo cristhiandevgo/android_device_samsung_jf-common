@@ -116,7 +116,7 @@ PRODUCT_PACKAGES += \
 #PRODUCT_PACKAGES += \
 #    SamsungDoze
 
-# DRM
+# DRM HIDL
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-impl
 
@@ -224,7 +224,7 @@ PRODUCT_PACKAGES += \
 # SHIM Libs
 PRODUCT_PACKAGES += \
     libshim_atomic
-	
+
 # Sensors
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl 
