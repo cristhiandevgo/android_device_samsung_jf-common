@@ -120,10 +120,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-impl
 
-# Gatekeeper HIDL
-PRODUCT_PACKAGES += \
-    android.hardware.gatekeeper@1.0-impl
-
 # GPS HIDL
 PRODUCT_PACKAGES += \
     android.hardware.gnss@1.0-impl
