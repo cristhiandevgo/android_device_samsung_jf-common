@@ -9,6 +9,3 @@
 
 # Needed by NFC
 /dev/bcm2079x                                              u:object_r:nfc_device:s0
-
-# GPU
-/dev/kgsl-3d0                                              u:object_r:gpu_device:s0
