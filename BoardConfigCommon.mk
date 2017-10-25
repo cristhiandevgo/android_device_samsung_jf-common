@@ -32,9 +32,6 @@ TARGET_SPECIFIC_HEADER_PATH += device/samsung/jf-common/include
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
 
-# ANT+
-BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
-
 # Architecture
 TARGET_CPU_VARIANT := krait
 
