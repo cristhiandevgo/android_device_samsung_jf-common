@@ -118,7 +118,9 @@ PRODUCT_PACKAGES += \
     gralloc.msm8960 \
     hwcomposer.msm8960 \
     libgenlock \
-    memtrack.msm8960
+    memtrack.msm8960 \
+    libqdutils \
+    libqdMetaData
 
 # Doze
 #PRODUCT_PACKAGES += \
@@ -198,6 +200,8 @@ PRODUCT_COPY_FILES += \
 
 # OMX
 PRODUCT_PACKAGES += \
+    libc2dcolorconvert \
+    libmm-omxcore \
     libOmxCore \
     libOmxVdec \
     libOmxVenc \
