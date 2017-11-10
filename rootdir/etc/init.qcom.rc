@@ -89,8 +89,8 @@ on post-fs-data
     mkdir /data/misc/location/gsiff 0770 gps gps
 
     # Broadcom NFC
-    chmod 0600 /dev/bcm2079x
-    chown nfc nfc /dev/bcm2079x
+    chmod 0600 /dev/bcm2079x-i2c
+    chown nfc nfc /dev/bcm2079x-i2c
     mkdir /data/bcmnfc
     mkdir /data/bcmnfc/param
     chmod 0700 /data/bcmnfc
