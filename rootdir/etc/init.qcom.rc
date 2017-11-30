@@ -63,6 +63,9 @@ on post-fs-data
     mkdir /tombstones/mdm 0771 system system
     mkdir /tombstones/mdm2 0771 system system
 
+    # Communicate with mpdecision and thermald
+    mkdir /dev/socket/mpdecision 2770 root system
+
     # Create directories for audio
     mkdir /data/misc/audio 0770 audio audio
 
@@ -382,7 +385,7 @@ service qcamerasvr /system/vendor/bin/mm-qcamera-daemon
 service mpdecision /system/vendor/bin/mpdecision --avg_comp
     class main
     user root
-    group system readproc
+    group system readproc wakelock
     disabled
 
 service kickstart /system/vendor/bin/qcks -i /firmware-mdm/image/
@@ -461,7 +464,7 @@ service charger /charger
 service thermald /system/bin/thermald
     class main
     user root
-    group root
+    group radio system
 
 on property:wlan.driver.status=ok
     # Wifi firmware reload path
