@@ -66,7 +66,6 @@ on post-fs-data
     mkdir /tombstones/mdm2 0771 system system
 
     # Create directories for audio
-    mkdir /data/audio 0770 media audio
     mkdir /data/misc/audio 0770 audio audio
 
     # Create directory for CNE
@@ -79,9 +78,6 @@ on post-fs-data
 
     # Create directory for HDCP 2.x
     mkdir /data/system/hdcp2 0775 system system
-
-    # Create directory from IMS services
-    mkdir /data/shared 0755 system system
 
     # Create directory for location services
     mkdir /data/misc/location 0770 gps gps
@@ -100,9 +96,6 @@ on post-fs-data
     chmod 0700 /data/bcmnfc/param
     chown nfc nfc /data/bcmnfc
     chown nfc nfc /data/bcmnfc/param
-
-    # Create directory for FOTA
-    mkdir /data/fota 0771 system system
 
     # Create directory for time-services
     mkdir /data/time 0700 system system
@@ -386,18 +379,18 @@ on boot
     # RIL fast dormancy
     chown system radio /sys/class/sec/bamdmux/waketime
 
-service qcamerasvr /system/bin/mm-qcamera-daemon
+service qcamerasvr /system/vendor/bin/mm-qcamera-daemon
     class late_start
     user camera
     group camera system inet input graphics
 
-service mpdecision /system/bin/mpdecision --avg_comp
+service mpdecision /system/vendor/bin/mpdecision --avg_comp
     class main
     user root
     group system readproc
     disabled
 
-service kickstart /system/bin/qcks -i /firmware-mdm/image/
+service kickstart /system/vendor/bin/qcks -i /firmware-mdm/image/
     user root
     group radio cache inet misc audio sdcard_rw log system
     oneshot
@@ -406,17 +399,17 @@ service kickstart /system/bin/qcks -i /firmware-mdm/image/
 on property:ro.baseband=mdm
     start kickstart
 
-service qseecomd /system/bin/qseecomd
+service qseecomd /system/vendor/bin/qseecomd
     class late_start
     user system
     group system
 
-service time_daemon /system/bin/time_daemon
+service time_daemon /system/vendor/bin/time_daemon
     class late_start
     user root
     group root
 
-service insthk /system/bin/insthk
+service insthk /system/vendor/bin/insthk
     class main
     user root
     disabled
@@ -426,18 +419,18 @@ service insthk /system/bin/insthk
 on property:sys.qseecomd.enable=true
     start insthk
 
-service irsc_util /system/bin/irsc_util "/etc/sec_config"
+service irsc_util /system/vendor/bin/irsc_util "/etc/sec_config"
     class main
     user root
     oneshot
 
 # QMUX must be in multiple groups to support external process connections
-service qmuxd /system/bin/qmuxd
+service qmuxd /system/vendor/bin/qmuxd
     class main
     user root
     group radio audio bluetooth gps diag log
 
-service netmgrd /system/bin/netmgrd
+service netmgrd /system/vendor/bin/netmgrd
     class main
     user root
     group root wifi wakelock radio inet
@@ -476,7 +469,7 @@ service charger /charger
     class charger
     seclabel u:r:charger:s0
 
-service thermal-engine /system/bin/thermal-engine
+service thermal-engine /system/vendor/bin/thermal-engine
     class main
     user root
     group root
