@@ -220,10 +220,6 @@ PRODUCT_PACKAGES += \
     init.recovery.qcom.rc \
     ueventd.qcom.rc
 
-# SHIM Libs
-PRODUCT_PACKAGES += \
-    libshim_atomic
-
 # Sensors
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl 
