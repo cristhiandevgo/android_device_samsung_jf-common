@@ -97,9 +97,6 @@ on post-fs-data
     chown nfc nfc /data/bcmnfc
     chown nfc nfc /data/bcmnfc/param
 
-    # Create directory for time-services
-    mkdir /data/vendor/time 0700 system system
-
     # Create directories for WiFi
     mkdir /data/misc/wifi 0770 wifi wifi
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
@@ -403,11 +400,6 @@ service qseecomd /system/vendor/bin/qseecomd
     class late_start
     user system
     group system
-
-service time_daemon /system/vendor/bin/time_daemon
-    class late_start
-    user root
-    group root
 
 service insthk /system/vendor/bin/insthk
     class main
