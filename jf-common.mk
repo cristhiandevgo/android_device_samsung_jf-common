@@ -235,8 +235,8 @@ PRODUCT_COPY_FILES += \
 
 # Thermal
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/thermal-engine.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermal-engine.conf \
-    $(LOCAL_PATH)/configs/thermal-engine-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermal-engine-8064ab.conf
+    $(LOCAL_PATH)/configs/thermald-8064.conf:system/vendor/etc/thermald-8064.conf \
+    $(LOCAL_PATH)/configs/thermald-8064ab.conf:system/vendor/etc/thermald-8064ab.conf
 
 # USB HAL
 PRODUCT_PACKAGES += \
