@@ -108,7 +108,7 @@ PRODUCT_PACKAGES += \
 
 # Doze
 #PRODUCT_PACKAGES += \
-#    SamsungDoze
+    SamsungDoze
 
 # GPS HAL
 PRODUCT_PACKAGES += \
