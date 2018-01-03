@@ -156,9 +156,9 @@ PRODUCT_COPY_FILES += \
 # NFC packages
 PRODUCT_PACKAGES += \
 #    libnfc-nci \
-#   libnfc_nci_jni \
+#    libnfc_nci_jni \
 #    nfc_nci.bcm2079x.default \
-#   NfcNci \
+#    NfcNci \
 #    Tag \
 #    com.android.nfc_extras
 
@@ -183,6 +183,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     power.msm8960
 
+# Default OMX service to non-Treble
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.media.treble_omx=false
+
 # Ramdisk
 PRODUCT_PACKAGES += \
     fstab.qcom \
@@ -195,6 +199,10 @@ PRODUCT_PACKAGES += \
 # SPN override
 PRODUCT_COPY_FILES += \
     device/samsung/jf-common/selective-spn-conf.xml:system/etc/selective-spn-conf.xml
+
+# Shim
+PRODUCT_PACKAGES += \
+    libshim_camera 
 
 # Thermal
 PRODUCT_COPY_FILES += \
