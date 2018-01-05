@@ -24,15 +24,14 @@
 #define LOG_PARAMETERS
 
 #define LOG_TAG "CameraWrapper"
-#include <cutils/log.h>
 
-#include <utils/threads.h>
-#include <utils/String8.h>
-#include <hardware/hardware.h>
-#include <hardware/camera.h>
-#include <camera/Camera.h>
 #include <camera/CameraParameters.h>
-#include <math.h>
+#include <camera/Camera.h>
+#include <cutils/log.h>
+#include <hardware/camera.h>
+#include <hardware/hardware.h>
+#include <utils/String8.h>
+#include <utils/threads.h>
 
 #define REAR_CAMERA_ID 0
 #define FRONT_CAMERA_ID 1
@@ -70,17 +69,17 @@ camera_module_t HAL_MODULE_INFO_SYM = {
          .name = "Samsung jf Camera Wrapper",
          .author = "The LineageOS Project",
          .methods = &camera_module_methods,
-         .dso = NULL, /* remove compilation warnings */
-         .reserved = {0}, /* remove compilation warnings */
+         .dso = NULL,
+         .reserved = {0},
     },
     .get_number_of_cameras = camera_get_number_of_cameras,
     .get_camera_info = camera_get_camera_info,
-    .set_callbacks = NULL, /* remove compilation warnings */
-    .get_vendor_tag_ops = NULL, /* remove compilation warnings */
-    .open_legacy = NULL, /* remove compilation warnings */
-    .set_torch_mode = NULL, /* remove compilation warnings */
-    .init = NULL, /* remove compilation warnings */
-    .reserved = {0}, /* remove compilation warnings */
+    .set_callbacks = NULL,
+    .get_vendor_tag_ops = NULL,
+    .open_legacy = NULL,
+    .set_torch_mode = NULL,
+    .init = NULL,
+    .reserved = {0},
 };
 
 typedef struct wrapper_camera_device {
