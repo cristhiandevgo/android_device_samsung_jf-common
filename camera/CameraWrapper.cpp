@@ -127,7 +127,7 @@ static char *camera_fixup_getparams(int id, const char *settings)
 
     /* Photos: Correct exposed ISO values */
     params.set(KEY_SUPPORTED_ISO_MODES,
-            "auto,ISO_HJR,ISO100,ISO200,ISO400,ISO800");
+            "auto,ISO100,ISO200,ISO400,ISO800");
 
     ALOGV("%s: Fixed parameters:", __FUNCTION__);
     params.dump();
