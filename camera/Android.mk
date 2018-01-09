@@ -18,8 +18,7 @@ LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libdl \
     libgui \
-    android.hidl.token@1.0-utils \
-    android.hardware.graphics.bufferqueue@1.0
+    android.hidl.token@1.0-utils
 
 LOCAL_STATIC_LIBRARIES := \
     libarect \
