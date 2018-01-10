@@ -25,6 +25,9 @@
 # Inherit from qcom-common
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
+# ADB
+TARGET_USES_LEGACY_ADB_INTERFACE := true
+
 COMMON_PATH := device/samsung/jf-common
 
 TARGET_SPECIFIC_HEADER_PATH += device/samsung/jf-common/include
@@ -145,8 +148,6 @@ TARGET_USE_SDCLANG := true
 include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 
-# USB
-TARGET_USES_LEGACY_ADB_INTERFACE := true
 
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
