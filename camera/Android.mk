@@ -7,6 +7,9 @@ LOCAL_C_INCLUDES += \
     frameworks/native/include \ 
     system/media/camera/include
 
+LOCAL_HEADER_LIBRARIES += \
+    libnativebase_headers
+
 LOCAL_SRC_FILES := \
     CameraWrapper.cpp
 
