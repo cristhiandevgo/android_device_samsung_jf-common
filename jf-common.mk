@@ -23,8 +23,8 @@ $(call inherit-product-if-exists, vendor/samsung/jf-common/jf-common-vendor.mk)
 
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += \
-    device/samsung/jf-common/overlay \
-    device/samsung/jf-common/overlay-lineage
+    $(LOCAL_PATH)/overlay \
+    $(LOCAL_PATH)/overlay-lineage
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -205,7 +205,7 @@ PRODUCT_COPY_FILES += \
 
 # SPN override
 PRODUCT_COPY_FILES += \
-    device/samsung/jf-common/selective-spn-conf.xml:system/etc/selective-spn-conf.xml
+    $(LOCAL_PATH)/selective-spn-conf.xml:system/etc/selective-spn-conf.xml
 
 # Shim
 PRODUCT_PACKAGES += \
