@@ -4,7 +4,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES += \
-    frameworks/native/include \ 
+    frameworks/native/include \
     system/media/camera/include
 
 LOCAL_HEADER_LIBRARIES += \
