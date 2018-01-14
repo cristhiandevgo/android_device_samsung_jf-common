@@ -449,13 +449,16 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
     oneshot
 
 service macloader /system/vendor/bin/macloader
-    class main
+    class late_start
     oneshot
-    seclabel u:r:macloader_exec:s0
+    seclabel u:r:macloader:s0
 
 on property:init.svc.macloader=stopped
     chown root system /data/.rev
     chmod 0664 /data/.rev
+
+on property:wlan.driver.status=ok
+    start macloader
 
 service charger /charger
     class charger
