@@ -47,6 +47,9 @@ TARGET_CPU_VARIANT := krait
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := MSM8960
 
+# Exclude serif fonts for saving system.img size.
+EXCLUDE_SERIF_FONTS := true
+
 # Kernel
 BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom user_debug=31 zcache msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x80200000
