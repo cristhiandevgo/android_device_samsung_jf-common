@@ -121,7 +121,6 @@
             <instance>default</instance>
         </interface>
     </hal>
-    </hal>
     <hal format="hidl">
         <name>android.hardware.nfc</name>
         <transport>hwbinder</transport>
