@@ -53,7 +53,7 @@ PRODUCT_PACKAGES += \
     android.hardware.light@2.0-impl
 
 # NFC HIDL
-#PRODUCT_PACKAGES += \
+PRODUCT_PACKAGES += \
     android.hardware.nfc@1.0-impl-bcm \
     android.hardware.nfc@1.0-service
 
