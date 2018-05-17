@@ -204,6 +204,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/seccomp/mediacodec.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediacodec.policy \
     $(LOCAL_PATH)/seccomp/mediaextractor.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediaextractor.policy
 
+# Shim
+PRODUCT_PACKAGES += \
+    libshim_camera 
+
 # Thermal
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/thermald-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald.conf

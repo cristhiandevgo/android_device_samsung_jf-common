@@ -140,6 +140,8 @@ include device/qcom/sepolicy/sepolicy.mk
 include device/qcom/sepolicy/legacy-sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 
+#Shim
+TARGET_LD_SHIM_LIBS := /system/vendor/bin/mm-qcamera-daemon|libshim_camera.so
 
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
