@@ -19,3 +19,9 @@
 # Camera
 /data/cam_socket(.*)                                       u:object_r:camera_socket:s0
 /dev/rawchip(.*)                                           u:object_r:mm-qcamerad_device:s0
+
+# Thermal
+/sys/devices/platform/msm_ssbi\.0/pm8921-core/pm8921-charger/power_supply(/.*)?   u:object_r:sysfs_batteryinfo:s0
+/sys/devices/platform/msm_ssbi\.0/pm8921-core/pm8xxx-gpio/gpio(/.*)?              u:object_r:sysfs_gpio:s0
+/sys/devices/platform/msm_ssbi\.0/pm8921-core/pm8xxx-mpp\.0/gpio(/.*)?            u:object_r:sysfs_gpio:s0
+/sys/devices/platform/msm_ssbi\.0/pm8921-core/pm8xxx-adc(/.*)?                    u:object_r:sysfs_batteryinfo:s0
