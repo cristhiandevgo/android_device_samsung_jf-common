@@ -163,7 +163,7 @@ static char *camera_fixup_getparams(int id, const char *settings)
 
     /* Photos: Correct exposed ISO values */
     params.set(KEY_SUPPORTED_ISO_MODES,
-            "auto,ISO100,ISO200,ISO400,ISO800");
+            "auto,ISO_HJR,ISO100,ISO200,ISO400,ISO800,ISO1600");
 
     String8 strParams = params.flatten();
     char *ret = strdup(strParams.string());
@@ -196,6 +196,8 @@ static char *camera_fixup_setparams(int id, const char *settings)
             params.set(KEY_ISO_MODE, "400");
         else if (!strcmp(isoMode, "ISO800"))
             params.set(KEY_ISO_MODE, "800");
+        else if (!strcmp(isoMode, "ISO1600"))
+            params.set(KEY_ISO_MODE, "1600");
     }
 
 #if defined(LOG_PARAMETERS)
