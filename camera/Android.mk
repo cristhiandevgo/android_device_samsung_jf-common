@@ -14,11 +14,9 @@ LOCAL_SHARED_LIBRARIES := \
     libhardware \
     liblog \
     libcamera_client \
-    libutils \
-    libcutils \
-    libdl \
     libgui \
     libhidltransport \
+    libutils \
     android.hidl.token@1.0-utils
 
 LOCAL_STATIC_LIBRARIES := \
