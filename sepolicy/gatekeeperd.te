@@ -1,0 +1,2 @@
+#============= gatekeeperd ==============
+allow gatekeeperd sysfs:file { open read };

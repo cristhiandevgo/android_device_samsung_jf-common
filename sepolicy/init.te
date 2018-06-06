@@ -1,0 +1,7 @@
+#============= init ==============
+allow init debugfs:file write;
+allow init hidl_base_hwservice:hwservice_manager add;
+allow init mdm_device:chr_file ioctl;
+allow init qmuxd:unix_stream_socket connectto;
+allow init qmuxd_socket:sock_file write;
+allow init self:netlink_kobject_uevent_socket read;

@@ -1,0 +1,2 @@
+#============= mediacodec ==============
+allow mediacodec activity_service:service_manager find;
