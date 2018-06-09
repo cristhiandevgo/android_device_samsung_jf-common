@@ -35,6 +35,8 @@ TARGET_SPECIFIC_HEADER_PATH += device/samsung/jf-common/include
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
 
+TARGET_BOARD_INFO_FILE := $(COMMON_PATH)/board-info.txt
+
 # Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
