@@ -30,7 +30,7 @@ TARGET_USES_LEGACY_ADB_INTERFACE := true
 
 COMMON_PATH := device/samsung/jf-common
 
-TARGET_SPECIFIC_HEADER_PATH += device/samsung/jf-common/include
+TARGET_SPECIFIC_HEADER_PATH += $(COMMON_PATH)/include
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
