@@ -38,6 +38,9 @@
 #define REAR_CAMERA_ID 0
 #define FRONT_CAMERA_ID 1
 
+#define OPEN_RETRIES 10
+#define OPEN_RETRY_MSEC 40
+
 using namespace android;
 
 // Wrapper specific parameters names
@@ -551,8 +554,15 @@ static int camera_device_open(const hw_module_t* module, const char* name, hw_de
         camera_device->camera_released = false;
         camera_device->id = camera_id;
 
-        rv = gVendorModule->common.methods->open((const hw_module_t*)gVendorModule, name,
-                                                 (hw_device_t**)&(camera_device->vendor));
+        int retries = OPEN_RETRIES;
+        bool retry;
+        do {
+            rv = gVendorModule->common.methods->open((const hw_module_t*)gVendorModule, name,
+                                                     (hw_device_t**)&(camera_device->vendor));
+            retry = --retries > 0 && rv;
+            if (retry) usleep(OPEN_RETRY_MSEC * 1000);
+        } while (retry);
+
         if (rv) {
             ALOGE("%s: vendor camera open fail", __FUNCTION__);
             goto fail;
