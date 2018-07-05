@@ -204,6 +204,12 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/thermald-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald.conf
 
+# Weather providers
+PRODUCT_PACKAGES += \
+    OpenWeatherMapWeatherProvider \
+    YahooWeatherProvider \
+    WundergroundWeatherProvider
+
 # Wifi
 PRODUCT_PACKAGES += \
     libnetcmdiface \
