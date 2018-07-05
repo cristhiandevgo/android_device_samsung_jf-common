@@ -75,6 +75,7 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     libaudio-resampler \
     libqcomvoiceprocessing \
+    libtinycompress \
     tinymix
 
 # Audio configuration
