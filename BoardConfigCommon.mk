@@ -140,7 +140,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 BOARD_PROVIDES_LIBRIL := true
 
 # SDClang
-TARGET_USE_SDCLANG := true
+#TARGET_USE_SDCLANG := true
 
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
