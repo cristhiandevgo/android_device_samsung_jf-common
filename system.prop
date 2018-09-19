@@ -28,7 +28,6 @@ persist.gps.qc_nlp_in_use=1
 # Media
 camera2.portability.force_api=1
 mm.enable.smoothstreaming=true
-persist.media.treble_omx=false
 
 # NFC
 ro.nfc.port=I2C
