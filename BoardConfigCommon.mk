@@ -85,6 +85,9 @@ BOARD_HAVE_BLUETOOTH_BCM := true
 TARGET_PROVIDES_CAMERA_HAL := true
 USE_DEVICE_SPECIFIC_CAMERA := true
 TARGET_NEEDS_LEGACY_CAMERA_HAL1_DYN_NATIVE_HANDLE := true
+TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
+    /system/bin/mediaserver=22 \
+    /system/vendor/bin/mm-qcamera-daemon=22
 
 # Camera Legacy Hacks
 TARGET_HAS_LEGACY_CAMERA_HAL1 := true
