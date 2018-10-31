@@ -98,6 +98,8 @@ BOARD_HARDWARE_CLASS += $(COMMON_PATH)/lineagehw
 
 # Display
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
+
+# Renderscript
 OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
 
 # Fonts
