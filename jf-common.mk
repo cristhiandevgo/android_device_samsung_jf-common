@@ -100,6 +100,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     camera.msm8960 \
     Snap
+
+# Camera configurations
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/external_camera_config.xml:$(TARGET_COPY_OUT_VENDOR)/etc/external_camera_config.xml
     
 # Display
 PRODUCT_PACKAGES += \
