@@ -150,6 +150,8 @@ include device/qcom/sepolicy/sepolicy.mk
 include device/qcom/sepolicy/legacy-sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 
+# Shipping API
+PRODUCT_SHIPPING_API_LEVEL := 17
 
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
