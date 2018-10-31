@@ -116,6 +116,9 @@ on post-fs-data
 
     mkdir /data/qcks 0771 system system
 
+    # Bluetooth
+    chown bluetooth bluetooth /persist/.bt_nv.bin
+
     # WiFi TRP/TIS
     write /data/.psm.info 1
     chown root system /data/.psm.info
