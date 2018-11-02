@@ -76,8 +76,7 @@ PRODUCT_PACKAGES += \
 
 # Power HIDL
 PRODUCT_PACKAGES += \
-    android.hardware.power@1.0-impl \
-    android.hardware.power@1.0-service
+    android.hardware.power@1.0-service.jf
 
 # Sensors HIDL
 PRODUCT_PACKAGES += \
