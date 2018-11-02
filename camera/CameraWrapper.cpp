@@ -25,10 +25,10 @@
 //#define LOG_NDEBUG 0
 
 #define LOG_TAG "CameraWrapper"
+#include <log/log.h>
 
 #include <camera/Camera.h>
 #include <camera/CameraParameters.h>
-#include <cutils/log.h>
 #include <hardware/camera.h>
 #include <hardware/hardware.h>
 #include <utils/String8.h>
