@@ -114,9 +114,9 @@ vendor/lib/libscale.so
 vendor/lib/libuiblur.so
 
 # Graphics firmware
-etc/firmware/a300_pfp.fw
-etc/firmware/a300_pm4.fw
-etc/firmware/vidc_1080p.fw
+vendor/etc/firmware/a300_pfp.fw
+vendor/etc/firmware/a300_pm4.fw
+vendor/etc/firmware/vidc_1080p.fw
 
 # HDCP
 vendor/bin/insthk
