@@ -63,8 +63,7 @@ PRODUCT_PACKAGES += \
 
 # Lights HIDL
 PRODUCT_PACKAGES += \
-    android.hardware.light@2.0-impl \
-    android.hardware.light@2.0-service
+    android.hardware.light@2.0-service.jf
 
 # Memory
 PRODUCT_PACKAGES += \
