@@ -389,18 +389,18 @@ on boot
     # RIL fast dormancy
     chown system radio /sys/class/sec/bamdmux/waketime
 
-service qcamerasvr /system/vendor/bin/mm-qcamera-daemon
+service qcamerasvr /vendor/bin/mm-qcamera-daemon
     class late_start
     user camera
     group camera system inet input graphics
 
-service mpdecision /system/vendor/bin/mpdecision --avg_comp
+service mpdecision /vendor/bin/mpdecision --avg_comp
     class main
     user root
     group system readproc wakelock
     disabled
 
-service kickstart /system/vendor/bin/qcks -i /firmware-mdm/image/
+service kickstart /vendor/bin/qcks -i /firmware-mdm/image/
     user root
     group radio cache inet misc audio sdcard_rw log system
     oneshot
@@ -409,12 +409,12 @@ service kickstart /system/vendor/bin/qcks -i /firmware-mdm/image/
 on property:ro.baseband=mdm
     start kickstart
 
-service qseecomd /system/vendor/bin/qseecomd
+service qseecomd /vendor/bin/qseecomd
     class late_start
     user system
     group system
 
-service insthk /system/vendor/bin/insthk
+service insthk /vendor/bin/insthk
     class main
     user root
     disabled
@@ -424,18 +424,18 @@ service insthk /system/vendor/bin/insthk
 on property:sys.qseecomd.enable=true
     start insthk
 
-service irsc_util /system/vendor/bin/irsc_util "/system/vendor/etc/sec_config"
+service irsc_util /vendor/bin/irsc_util "/vendor/etc/sec_config"
     class main
     user root
     oneshot
 
 # QMUX must be in multiple groups to support external process connections
-service qmuxd /system/vendor/bin/qmuxd
+service qmuxd /vendor/bin/qmuxd
     class main
     user root
     group radio audio bluetooth gps diag log
 
-service netmgrd /system/vendor/bin/netmgrd
+service netmgrd /vendor/bin/netmgrd
     class main
     group root wifi wakelock radio inet oem_2950
 
@@ -458,7 +458,7 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
     disabled
     oneshot
 
-service macloader /system/vendor/bin/macloader
+service macloader /vendor/bin/macloader
     class main
     oneshot
     seclabel u:r:macloader:s0
@@ -471,7 +471,7 @@ service charger /charger
     class charger
     seclabel u:r:charger:s0
 
-service thermald /system/vendor/bin/thermald
+service thermald /vendor/bin/thermald
     class main
     user root
     group radio system
