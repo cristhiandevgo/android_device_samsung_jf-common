@@ -39,7 +39,7 @@ FIRMWARE_MDM_IMAGES := \
     sbl1.mbn \
     sbl2.mbn
 
-FIRMWARE_MDM_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_MDM_IMAGES)))
+FIRMWARE_MDM_SYMLINKS := $(addprefix $(TARGET_OUT_VENDOR)/firmware/,$(notdir $(FIRMWARE_MDM_IMAGES)))
 $(FIRMWARE_MDM_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@echo "Firmware link: $@"
 	@mkdir -p $(dir $@)
@@ -54,7 +54,7 @@ FIRMWARE_IMAGES := \
     q6.b00 q6.b01 q6.b03 q6.b04 q6.b05 q6.b06 q6.mdt \
     tzapps.b00 tzapps.b01 tzapps.b02 tzapps.b03 tzapps.mdt
 
-FIRMWARE_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_IMAGES)))
+FIRMWARE_SYMLINKS := $(addprefix $(TARGET_OUT_VENDOR)/firmware/,$(notdir $(FIRMWARE_IMAGES)))
 $(FIRMWARE_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@echo "Firmware link: $@"
 	@mkdir -p $(dir $@)
