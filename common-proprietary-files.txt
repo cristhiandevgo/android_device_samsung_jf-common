@@ -160,10 +160,10 @@ vendor/lib/libWVStreamControlAPI_L1.so|6b28492ac55b9a3d86993343cf2c8b55240b3420
 vendor/lib/mediadrm/libwvdrmengine.so|6bdcc4d59b07ccbdd7b07a99677406ade3d2e232
 
 # Wi-Fi
-etc/wifi/bcmdhd_apsta.bin
-etc/wifi/bcmdhd_ibss.bin
-etc/wifi/bcmdhd_mfg.bin
-etc/wifi/bcmdhd_sta.bin
-etc/wifi/cred.conf
-etc/wifi/nvram_mfg.txt
-etc/wifi/nvram_net.txt
+vendor/etc/wifi/bcmdhd_apsta.bin
+vendor/etc/wifi/bcmdhd_ibss.bin
+vendor/etc/wifi/bcmdhd_mfg.bin
+vendor/etc/wifi/bcmdhd_sta.bin
+vendor/etc/wifi/cred.conf
+vendor/etc/wifi/nvram_mfg.txt
+vendor/etc/wifi/nvram_net.txt
