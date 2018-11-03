@@ -375,7 +375,7 @@ static int camera_set_parameters(struct camera_device* device, const char* param
     if (!device) return -EINVAL;
 
     char* tmp = NULL;
-    tmp = camera_fixup_setparams(device, params);
+    tmp = camera_fixup_setparams(CAMERA_ID(device), params);
 
     int ret = VENDOR_CALL(device, set_parameters, tmp);
     return ret;
