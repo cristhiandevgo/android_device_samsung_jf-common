@@ -64,12 +64,14 @@ PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1920
 TARGET_SCREEN_WIDTH := 1080
-TARGET_BOOTANIMATION_HALF_RES := true
 
 $(call inherit-product, frameworks/native/build/phone-xxhdpi-2048-dalvik-heap.mk)
 
 # Audio
 PRODUCT_PACKAGES += \
+    android.hardware.audio@2.0-impl \
+    android.hardware.audio@2.0-service \
+    android.hardware.audio.effect@2.0-impl \
     audio.a2dp.default \
     audio.primary.msm8960 \
     audio.r_submix.default \
@@ -88,6 +90,8 @@ PRODUCT_COPY_FILES += \
 
 # Bluetooth
 PRODUCT_PACKAGES += \
+    android.hardware.bluetooth@1.0-impl \
+    android.hardware.bluetooth@1.0-service \
     libbt-vendor
 
 PRODUCT_COPY_FILES += \
@@ -99,35 +103,46 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
+    android.hardware.camera.provider@2.4-impl-legacy \
+    camera.device@1.0-impl-legacy \
     Snap \
     camera.msm8960
 
+# Configstore
+PRODUCT_PACKAGES += \
+    android.hardware.configstore@1.0-impl \
+    android.hardware.configstore@1.0-service
+
 # Display
 PRODUCT_PACKAGES += \
+    android.hardware.graphics.allocator@2.0-impl \
+    android.hardware.graphics.allocator@2.0-service \
+    android.hardware.graphics.mapper@2.0-impl \
+    android.hardware.memtrack@1.0-impl \
     copybit.msm8960 \
     gralloc.msm8960 \
     hwcomposer.msm8960 \
     memtrack.msm8960
 
-#    libgenlock \
-#    libqdutils \
-#    libqdMetaData
-
 # Doze
 PRODUCT_PACKAGES += \
     SamsungDoze
 
-# GPS HAL
+# DRM
 PRODUCT_PACKAGES += \
-    gps.msm8960
+    android.hardware.drm@1.0-impl \
+    android.hardware.drm@1.0-service
 
 # GPS configs
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.conf:system/etc/gps.conf \
     $(LOCAL_PATH)/configs/sap.conf:system/etc/sap.conf
 
-# HIDL
-$(call inherit-product, $(LOCAL_PATH)/hidl.mk)
+# GPS HAL
+PRODUCT_PACKAGES += \
+    android.hardware.gnss@1.0-impl \
+    android.hardware.gnss@1.0-service \
+    gps.msm8960
 
 # IPv6 tethering
 PRODUCT_PACKAGES += \
@@ -136,6 +151,8 @@ PRODUCT_PACKAGES += \
 
 # IR
 PRODUCT_PACKAGES += \
+    android.hardware.ir@1.0-impl \
+    android.hardware.ir@1.0-service \
     consumerir.msm8960
 
 # Keylayouts
@@ -148,8 +165,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/sec_touchkey.kl:system/usr/keylayout/sec_touchkey.kl \
     $(LOCAL_PATH)/keylayout/ue_rf4ce_remote.kl:system/usr/keylayout/ue_rf4ce_remote.kl
 
+# Keymaster
+PRODUCT_PACKAGES += \
+    android.hardware.keymaster@3.0-impl \
+    android.hardware.keymaster@3.0-service
+
 # Lights
 PRODUCT_PACKAGES += \
+    android.hardware.light@2.0-impl \
+    android.hardware.light@2.0-service \
     lights.MSM8960
 
 # Media
@@ -167,6 +191,8 @@ PRODUCT_COPY_FILES += \
 
 # NFC packages
 PRODUCT_PACKAGES += \
+    android.hardware.nfc@1.0-impl-bcm \
+    android.hardware.nfc@1.0-service \
     libnfc-nci \
     libnfc_nci_jni \
     nfc_nci.bcm2079x.default \
@@ -193,7 +219,14 @@ PRODUCT_PACKAGES += \
 
 # Power
 PRODUCT_PACKAGES += \
+    android.hardware.power@1.0-impl \
+    android.hardware.power@1.0-service \
     power.msm8960
+
+# Radio
+PRODUCT_PACKAGES += \
+    android.hardware.radio@1.0 \
+    android.hardware.radio.deprecated@1.0
 
 # Ramdisk
 PRODUCT_PACKAGES += \
@@ -210,6 +243,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/seccomp/mediacodec.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediacodec.policy \
     $(LOCAL_PATH)/seccomp/mediaextractor.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediaextractor.policy
+
+# Sensors
+PRODUCT_PACKAGES += \
+    android.hardware.sensors@1.0-impl
 
 # SPN override
 PRODUCT_COPY_FILES += \
@@ -229,6 +266,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/thermald-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald-8064ab.conf \
     $(LOCAL_PATH)/configs/thermald-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald.conf
 
+# USB
+PRODUCT_PACKAGES += \
+    android.hardware.usb@1.0-service
+
+# Vibrator
+PRODUCT_PACKAGES += \
+    android.hardware.vibrator@1.0-impl \
+    android.hardware.vibrator@1.0-service
+
 # Weather providers
 PRODUCT_PACKAGES += \
 	OpenWeatherMapWeatherProvider \
@@ -237,6 +283,8 @@ PRODUCT_PACKAGES += \
 
 # Wifi
 PRODUCT_PACKAGES += \
+    android.hardware.wifi@1.0-impl \
+    android.hardware.wifi@1.0-service \
     libnetcmdiface \
     macloader \
     hostapd \
