@@ -147,9 +147,6 @@ TARGET_USERIMAGES_USE_F2FS := true
 BOARD_PROVIDES_LIBRIL := true
 TARGET_RIL_VARIANT := caf
 
-# SDClang
-#TARGET_USE_SDCLANG := true
-
 # SELinux
 #include device/qcom/sepolicy/sepolicy.mk
 #include device/qcom/sepolicy/legacy-sepolicy.mk
