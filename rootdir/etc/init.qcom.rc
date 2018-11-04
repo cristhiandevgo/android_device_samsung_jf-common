@@ -419,7 +419,7 @@ service insthk /vendor/bin/insthk
     user root
     disabled
     oneshot
-    seclabel u:r:insthk:s0
+    #seclabel u:r:insthk:s0
 
 on property:sys.qseecomd.enable=true
     start insthk
@@ -461,7 +461,7 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
 service macloader /vendor/bin/macloader
     class main
     oneshot
-    seclabel u:r:macloader:s0
+    #seclabel u:r:macloader:s0
 
 on property:init.svc.macloader=stopped
     chown root system /data/.rev
@@ -469,7 +469,7 @@ on property:init.svc.macloader=stopped
 
 service charger /charger
     class charger
-    seclabel u:r:charger:s0
+    #seclabel u:r:charger:s0
 
 service thermald /vendor/bin/thermald
     class main
