@@ -178,9 +178,9 @@
 /dev/uio2                 0660   system     system
 
 # MDM devices
-/dev/block/mmcblk0p13     0660	system	    radio
-/dev/block/mmcblk0p14     0660	system	    radio
-/dev/block/mmcblk0p15     0660	system	    radio
+/dev/block/mmcblk0p13     0660   system     radio
+/dev/block/mmcblk0p14     0660   system     radio
+/dev/block/mmcblk0p15     0660   system     radio
 
 # Sysfs properties
 /sys/devices/virtual/input/input*   enable      0660    system  radio
