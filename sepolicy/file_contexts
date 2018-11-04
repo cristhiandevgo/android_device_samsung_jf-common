@@ -9,7 +9,7 @@
 
 # Needed by NFC
 /dev/bcm2079x                                              u:object_r:nfc_device:s0
-/data/bcmnfc(/.*)?                                         u:object_r:nfc_data_file:s0
+/data/nfc(/.*)?                                            u:object_r:nfc_data_file:s0
 
 # gpu freq
 /sys/devices/platform/kgsl-3d0.0/kgsl/kgsl-3d0/gpuclk               u:object_r:sysfs_thermal:s0
