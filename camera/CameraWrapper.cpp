@@ -137,8 +137,8 @@ static char* camera_fixup_getparams(int id, const char* settings) {
     CameraParameters params;
     params.unflatten(String8(settings));
 
-    ALOGV("%s: Original parameters:", __FUNCTION__);
-    params.dump();
+//    ALOGV("%s: Original parameters:", __FUNCTION__);
+//    params.dump();
 
     /* Rear photos: Remove HDR scene mode */
     if (id == REAR_CAMERA_ID) {
@@ -148,8 +148,8 @@ static char* camera_fixup_getparams(int id, const char* settings) {
     /* Photos: Correct exposed ISO values */
     params.set(KEY_SUPPORTED_ISO_MODES, "auto,ISO100,ISO200,ISO400,ISO800");
 
-    ALOGV("%s: Fixed parameters:", __FUNCTION__);
-    params.dump();
+//    ALOGV("%s: Fixed parameters:", __FUNCTION__);
+//    params.dump();
 
     String8 strParams = params.flatten();
     char* ret = strdup(strParams.string());
@@ -160,10 +160,8 @@ static char* camera_fixup_getparams(int id, const char* settings) {
 static char* camera_fixup_setparams(int id, const char* settings) {
     CameraParameters params;
     params.unflatten(String8(settings));
-#if !LOG_NDEBUG
-    ALOGV("%s: Original parameters:", __FUNCTION__);
-    params.dump();
-#endif
+//    ALOGV("%s: Original parameters:", __FUNCTION__);
+//    params.dump();
 
     const char* recordHint = params.get(CameraParameters::KEY_RECORDING_HINT);
     bool isVideo = recordHint && !strcmp(recordHint, "true");
@@ -186,10 +184,8 @@ static char* camera_fixup_setparams(int id, const char* settings) {
             params.set(KEY_ISO_MODE, "800");
     }
 
-#if !LOG_NDEBUG
-    ALOGV("%s: Fixed parameters:", __FUNCTION__);
-    params.dump();
-#endif
+//    ALOGV("%s: Fixed parameters:", __FUNCTION__);
+//    params.dump();
 
     String8 strParams = params.flatten();
 
