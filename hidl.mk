@@ -80,7 +80,8 @@ PRODUCT_PACKAGES += \
 
 # Sensors HIDL
 PRODUCT_PACKAGES += \
-    android.hardware.sensors@1.0-impl
+    android.hardware.sensors@1.0-impl.jf \
+    android.hardware.sensors@1.0-service.jf
 
 # USB HIDL
 PRODUCT_PACKAGES += \
