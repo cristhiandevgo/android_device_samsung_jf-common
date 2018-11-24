@@ -1,4 +1,4 @@
-# Common device configuration for Samsung Galaxy S4 (Snapdragon variants)
+# Common device configuration for Samsung Galaxy S4 (Qualcomm)
 
 ## Spec Sheet
 
