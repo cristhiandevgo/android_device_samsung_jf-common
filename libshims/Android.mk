@@ -1,4 +1,5 @@
-# Copyright (C) 2015 The CyanogenMod Project
+# Copyright (C) 2013-2016, The CyanogenMod Project
+# Copyright (C) 2017, The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +16,14 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-
 LOCAL_SRC_FILES := \
-    samsung_ril.cpp
-
-LOCAL_SHARED_LIBRARIES := libbinder
-
-LOCAL_MODULE := libshim_ril
+    bionic/bionic_time_conversions.cpp \
+    bionic/pthread_cond.cpp
+LOCAL_SHARED_LIBRARIES := libc
+LOCAL_MODULE := libshim_camera
+LOCAL_CXX_STL := none
+LOCAL_SANITIZE := never
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-
+LOCAL_VENDOR_MODULE := true
 include $(BUILD_SHARED_LIBRARY)

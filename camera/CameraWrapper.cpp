@@ -33,9 +33,6 @@
 #define REAR_CAMERA_ID 0
 #define FRONT_CAMERA_ID 1
 
-#define OPEN_RETRIES 10
-#define OPEN_RETRY_MSEC 40
-
 using namespace android;
 
 // Camera Wrapper parameters
@@ -43,6 +40,7 @@ using namespace android;
 static const char KEY_CAMERA_MODE[] = "camera-mode";
 static const char KEY_ISO_MODE[] = "iso";
 static const char KEY_SUPPORTED_ISO_MODES[] = "iso-values";
+static const char KEY_ZOOM_RATIOS[]= "zoom-ratios";
 
 static Mutex gCameraWrapperLock;
 static camera_module_t *gVendorModule = 0;
@@ -127,6 +125,8 @@ static char *camera_fixup_getparams(int id, const char *settings)
     params.set(KEY_SUPPORTED_ISO_MODES,
             "auto,ISO_HJR,ISO100,ISO200,ISO400,ISO800,ISO1600");
 
+    
+
     ALOGV("%s: Fixed parameters:", __FUNCTION__);
     params.dump();
 
@@ -166,6 +166,9 @@ static char *camera_fixup_setparams(int id, const char *settings)
         else if (!strcmp(isoMode, "ISO1600"))
             params.set(KEY_ISO_MODE, "1600");
     }
+
+    params.set(KEY_ZOOM_RATIOS,
+	    "100,150");
 
     ALOGV("%s: Fixed parameters:", __FUNCTION__);
     params.dump();
@@ -546,17 +549,9 @@ static int camera_device_open(const hw_module_t *module, const char *name,
         memset(camera_device, 0, sizeof(*camera_device));
         camera_device->id = camera_id;
 
-	int retries = OPEN_RETRIES;
-        bool retry;
-        do {
-            rv = gVendorModule->common.methods->open(
-                    (const hw_module_t*)gVendorModule, name,
-                    (hw_device_t**)&(camera_device->vendor));
-            retry = --retries > 0 && rv;
-            if (retry)
-                usleep(OPEN_RETRY_MSEC * 1000);
-        } while (retry);
-      
+        rv = gVendorModule->common.methods->open(
+                (const hw_module_t*)gVendorModule, name,
+                (hw_device_t**)&(camera_device->vendor));
         if (rv) {
             ALOGE("Vendor camera open fail");
             goto fail;

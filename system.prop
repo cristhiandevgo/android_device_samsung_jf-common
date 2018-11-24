@@ -12,6 +12,7 @@ use.voice.path.for.pcm.voip=false
 
 # Bluetooth
 ro.bt.bdaddr_path=/efs/bluetooth/bt_addr
+persist.bt.enableAptXHD=true
 
 # Charger
 ro.enable_boot_charger_mode=1
@@ -23,19 +24,20 @@ ro.opengles.version=196608
 ro.sf.lcd_density=480
 
 # GPS
-ro.gps.agps_provider=1
-ro.qc.sdk.izat.premium_enabled=0
-ro.qc.sdk.izat.service_mask=0x0
-persist.gps.qc_nlp_in_use=0
+persist.gps.qc_nlp_in_use=1
 
 # Media
+camera2.portability.force_api=1
 mm.enable.smoothstreaming=true
+persist.media.treble_omx=false
+media.stagefright.enable-player=true
+media.stagefright.enable-meta=true
+media.stagefright.enable-scan=false
+media.stagefright.enable-http=true
+video.accelerate.hw=1
 
 # NFC
 ro.nfc.port=I2C
-
-# OMX properties
-persist.media.treble_omx=false
 
 # Perf
 ro.vendor.extension_library=libqti-perfd-client.so
@@ -50,7 +52,12 @@ persist.radio.apm_sim_not_pwdn=1
 persist.radio.fill_eons=1
 persist.radio.use_se_table_only=1
 ro.telephony.mms_data_profile=5
-ro.telephony.ril_class=jflteRIL
+persist.radio.add_power_save=1
+persist.radio.apm_sim_not_pwdn=1
+rild.libpath=/system/vendor/lib/libril-qc-qmi-1.so
+
+# Tethering
+net.tethering.noprovisioning=true
 
 # Time
 persist.timed.enable=true
