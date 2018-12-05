@@ -25,7 +25,6 @@
 # Inherit from qcom-common
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
-TARGET_SPECIFIC_HEADER_PATH += $(COMMON_PATH)/include
 # ADB
 TARGET_USES_LEGACY_ADB_INTERFACE := true
 
@@ -34,9 +33,6 @@ COMMON_PATH := device/samsung/jf-common
 # HIDL
 DEVICE_MANIFEST_FILE := $(COMMON_PATH)/manifest.xml
 DEVICE_MATRIX_FILE := $(COMMON_PATH)/compatibility_matrix.xml
-
-# inherit from the proprietary version
--include vendor/samsung/jf-common/jf-common-vendor.mk
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
@@ -133,7 +129,6 @@ BOARD_CACHEIMAGE_PARTITION_SIZE := 2170552320
 #BOARD_RECOVERYIMAGE_PARTITION_SIZE := 10485760
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 2847932416
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 28651290624
-BOARD_CACHEIMAGE_PARTITION_SIZE := 2170552320
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Power
@@ -157,10 +152,6 @@ include device/qcom/sepolicy/sepolicy.mk
 include device/qcom/sepolicy/legacy-sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 BOARD_SECCOMP_POLICY += $(BOARD_PATH)/seccomp
-
-# Vendor Init
-TARGET_INIT_VENDOR_LIB := libinit_jflte
-TARGET_LIBINIT_DEFINES_FILE := $(COMMON_PATH)/init/init_jflte.cpp
 
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
