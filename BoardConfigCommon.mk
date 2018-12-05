@@ -36,7 +36,7 @@ DEVICE_MANIFEST_FILE := $(COMMON_PATH)/manifest.xml
 DEVICE_MATRIX_FILE := $(COMMON_PATH)/compatibility_matrix.xml
 
 # inherit from the proprietary version
--include vendor/samsung/jf-common/BoardConfigVendor.mk
+-include vendor/samsung/jf-common/jf-common-vendor.mk
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
