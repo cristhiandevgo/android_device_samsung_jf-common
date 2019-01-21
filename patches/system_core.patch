@@ -1,0 +1,906 @@
+From d74f81de13d29e4df7cae9be4e4ae167b0218667 Mon Sep 17 00:00:00 2001
+From: zljing <zljing@codeaurora.org>
+Date: Mon, 18 Sep 2017 15:02:08 +0800
+Subject: [PATCH] init:  optimize shutdown time
+
+Android O adds 3 steps for the shutdown sequence, kill services/
+vold shutdown/umount. It need more than 700ms to kill services
+in which bootanimation will be stopped due to zygote died.
+However system turns off backlight at the step "umount" which is
+too late to get screen stuck in different interface. So turn
+off backlight before the step "kill services".
+
+CRs-Fixed: 2111441
+
+Change-Id: Ib397032272de77412a63031afe8c7fc9f9b80ccd
+Signed-off-by: Marco Zanin (B--B) <mrczn.bb@gmail.com>
+
+Panic: reboot in recovery, not bootloader mode
+
+Otherwise we will lose panic logs
+
+Signed-off-by: Marco Zanin (B--B) <mrczn.bb@gmail.com>
+
+libsuspend: Bring back earlysuspend
+
+Commit 021d60be98ca2eb72b2c63e3b1fea2169b7c2b69 removed support
+for earlysuspend that's needed for 3.4 kernels. Bring it back,
+since they don't have the new autosleep that was introduced in
+3.10 kernel.
+
+Change-Id: I6b605e1769b568e89821fa53a20313bf7b79c1ab
+Signed-off-by: Marco Zanin (B--B) <mrczn.bb@gmail.com>
+
+init: fixed issues related to forking services
+
+Fixed issues related to forking services into new PID + mount
+namespaces.
+
+Remounting rootfs recursively as slave when creating a service in new
+PID + mount namespaces. This prevents the service from interfering with
+mount points in the parent namespace.
+
+Unmount then mount /proc instead of mounting it with MS_REMOUNT, since
+MS_REMOUNT is not sufficient to update /proc to the state appropriate
+for the new PID namespace. Note that the /proc mount options specified
+here are not the same as those used in the default mount namespace. I
+kept them consistent with those used in the code prior to this fix.
+
+Test: Used custom sleepd service to test init 'namespace' keyword.
+Tested on angler in oreo-dev - I had to add PID namespaces to the
+kernel (commit ad82c662).
+
+Change-Id: I859104525f82fef3400d5abbad465331fc3d732f
+Signed-off-by: Marco Zanin (B--B) <mrczn.bb@gmail.com>
+
+init: Fire a trigger when a class is started/stopped
+
+ * This allows us to react to these events without messing
+   with the master config.
+
+Change-Id: Ifc72efc7b4cc0718838c711395f5fdc3b043827a
+Signed-off-by: Corey Edwards <ensabahnur16@gmail.com>
+Signed-off-by: Marco Zanin (B--B) <mrczn.bb@gmail.com>
+
+init: always allow local.prop overrides
+
+* Many people use this for more than just debugging. Let's allow
+  it to work in non-debuggable situations too.
+
+Change-Id: Ifb0d0e636c225ff8830154a49a182a034332056b
+
+init: Remove unnecessary undefine
+
+Change-Id: Idac8ab4a97105af5a66ed6726991a23212177bf2
+
+Revert "Revert "adb: Conditionally restore support for legacy f_adb interface""
+
+This reverts commit 61a084ecc39d02f6d609c5b69841896301ba68c1.
+
+Push our core (2/2)
+
+Change-Id: I397d113a51d28026b130a9efd170e5112afa905e
+---
+ adb/Android.mk                        |   8 +
+ adb/adb.h                             |   3 +
+ adb/daemon/main.cpp                   |   4 +
+ adb/daemon/usb.cpp                    | 139 ++++++++++++++++
+ adb/daemon/usb.h                      |   5 +
+ init/Android.bp                       |   3 +
+ init/Android.mk                       |   2 +-
+ init/builtins.cpp                     |  22 +++
+ init/reboot.cpp                       |   7 +-
+ init/service.cpp                      |  18 ++-
+ libprocinfo/Android.bp                |   1 +
+ libsuspend/Android.bp                 |   2 +
+ libsuspend/autosuspend.c              |   5 +
+ libsuspend/autosuspend_earlysuspend.c | 219 ++++++++++++++++++++++++++
+ libsysutils/Android.bp                |   2 +-
+ libutils/Android.bp                   |  11 +-
+ qemu_pipe/Android.bp                  |   2 +-
+ rootdir/ueventd.rc                    |   2 +
+ sdcard/Android.mk                     |   4 +-
+ toolbox/Android.bp                    |   3 +-
+ 20 files changed, 446 insertions(+), 16 deletions(-)
+ create mode 100644 libsuspend/autosuspend_earlysuspend.c
+
+diff --git a/system/core/adb/Android.mk b/system/core/adb/Android.mk
+index ece064577..2a81f068b 100644
+--- a/system/core/adb/Android.mk
++++ b/system/core/adb/Android.mk
+@@ -113,6 +113,10 @@ LOCAL_MODULE := libadbd_usb
+ LOCAL_CFLAGS := $(LIBADB_CFLAGS) -DADB_HOST=0
+ LOCAL_SRC_FILES := daemon/usb.cpp
+ 
++ifeq ($(TARGET_USES_LEGACY_ADB_INTERFACE),true)
++LOCAL_CFLAGS += -DLEGACY_ADB_INTERFACE
++endif
++
+ LOCAL_SANITIZE := $(adb_target_sanitize)
+ 
+ # Even though we're building a static library (and thus there's no link step for
+@@ -357,6 +361,10 @@ LOCAL_CFLAGS += -DALLOW_ADBD_DISABLE_VERITY=1
+ LOCAL_CFLAGS += -DALLOW_ADBD_ROOT=1
+ endif
+ 
++ifeq ($(TARGET_USES_LEGACY_ADB_INTERFACE),true)
++LOCAL_CFLAGS += -DLEGACY_ADB_INTERFACE
++endif
++
+ LOCAL_MODULE := adbd
+ 
+ LOCAL_FORCE_STATIC_EXECUTABLE := true
+diff --git a/system/core/adb/adb.h b/system/core/adb/adb.h
+index 68384f1b5..acea77ddf 100644
+--- a/system/core/adb/adb.h
++++ b/system/core/adb/adb.h
+@@ -215,6 +215,9 @@ extern int SHELL_EXIT_NOTIFY_FD;
+ #define CHUNK_SIZE (64*1024)
+ 
+ #if !ADB_HOST
++#ifdef LEGACY_ADB_INTERFACE
++#define USB_ADB_PATH     "/dev/android_adb"
++#endif
+ #define USB_FFS_ADB_PATH  "/dev/usb-ffs/adb/"
+ #define USB_FFS_ADB_EP(x) USB_FFS_ADB_PATH#x
+ 
+diff --git a/system/core/adb/daemon/main.cpp b/system/core/adb/daemon/main.cpp
+index ef220332c..e48c5d5aa 100644
+--- a/system/core/adb/daemon/main.cpp
++++ b/system/core/adb/daemon/main.cpp
+@@ -177,7 +177,11 @@ int adbd_main(int server_port) {
+     drop_privileges(server_port);
+ 
+     bool is_usb = false;
++#ifdef LEGACY_ADB_INTERFACE
++    if (access(USB_ADB_PATH, F_OK) == 0) {
++#else
+     if (access(USB_FFS_ADB_EP0, F_OK) == 0) {
++#endif
+         // Listen on USB.
+         usb_init();
+         is_usb = true;
+diff --git a/system/core/adb/daemon/usb.cpp b/system/core/adb/daemon/usb.cpp
+index 0f92282c4..690a031fa 100644
+--- a/system/core/adb/daemon/usb.cpp
++++ b/system/core/adb/daemon/usb.cpp
+@@ -64,7 +64,9 @@ using namespace std::chrono_literals;
+ 
+ #define FUNCTIONFS_ENDPOINT_ALLOC       _IOR('g', 231, __u32)
+ 
++#ifndef LEGACY_ADB_INTERFACE
+ static constexpr size_t ENDPOINT_ALLOC_RETRIES = 10;
++#endif
+ 
+ static int dummy_fd = -1;
+ 
+@@ -105,6 +107,138 @@ struct desc_v2 {
+     struct usb_ext_compat_desc os_desc;
+ } __attribute__((packed));
+ 
++#ifdef LEGACY_ADB_INTERFACE
++static void usb_adb_open_thread(void* x) {
++    struct usb_handle *usb = (struct usb_handle *)x;
++    int fd;
++
++    adb_thread_setname("usb open");
++
++    while (true) {
++        // wait until the USB device needs opening
++        std::unique_lock<std::mutex> lock(usb->lock);
++        while (!usb->open_new_connection) {
++            usb->notify.wait(lock);
++        }
++        usb->open_new_connection = false;
++        lock.unlock();
++
++        D("[ usb_thread - opening device ]");
++        do {
++            /* XXX use inotify? */
++            fd = unix_open("/dev/android_adb", O_RDWR);
++            if (fd < 0) {
++                // to support older kernels
++                fd = unix_open("/dev/android", O_RDWR);
++            }
++            if (fd < 0) {
++                std::this_thread::sleep_for(1s);
++            }
++        } while (fd < 0);
++        D("[ opening device succeeded ]");
++
++        close_on_exec(fd);
++        usb->fd = fd;
++
++        D("[ usb_thread - registering device ]");
++        register_usb_transport(usb, 0, 0, 1);
++    }
++
++    // never gets here
++    abort();
++}
++
++static int usb_adb_write(usb_handle *h, const void *data, int len)
++{
++    int n;
++
++    D("about to write (fd=%d, len=%d)", h->fd, len);
++    n = unix_write(h->fd, data, len);
++    if(n != len) {
++        D("ERROR: fd = %d, n = %d, errno = %d (%s)",
++            h->fd, n, errno, strerror(errno));
++        return -1;
++    }
++    if (h->kicked) {
++        D("usb_adb_write finished due to kicked");
++        return -1;
++    }
++    D("[ done fd=%d ]", h->fd);
++    return 0;
++}
++
++static int usb_adb_read(usb_handle *h, void *data, int len)
++{
++    D("about to read (fd=%d, len=%d)", h->fd, len);
++    while (len > 0) {
++        // The kernel implementation of adb_read in f_adb.c doesn't support
++        // reads larger then 4096 bytes. Read the data in 4096 byte chunks to
++        // avoid the issue. (The ffs implementation doesn't have this limit.)
++        int bytes_to_read = len < 4096 ? len : 4096;
++        int n = unix_read(h->fd, data, bytes_to_read);
++        if (n != bytes_to_read) {
++            D("ERROR: fd = %d, n = %d, errno = %d (%s)",
++                h->fd, n, errno, strerror(errno));
++            return -1;
++        }
++        if (h->kicked) {
++            D("usb_adb_read finished due to kicked");
++            return -1;
++        }
++        len -= n;
++        data = ((char*)data) + n;
++    }
++    D("[ done fd=%d ]", h->fd);
++    return 0;
++}
++
++static void usb_adb_kick(usb_handle *h) {
++    D("usb_kick");
++    // Other threads may be calling usb_adb_read/usb_adb_write at the same time.
++    // If we close h->fd, the file descriptor will be reused to open other files,
++    // and the read/write thread may operate on the wrong file. So instead
++    // we set the kicked flag and reopen h->fd to a dummy file here. After read/write
++    // threads finish, we close h->fd in usb_adb_close().
++    h->kicked = true;
++    TEMP_FAILURE_RETRY(dup2(dummy_fd, h->fd));
++}
++
++static void usb_adb_close(usb_handle *h) {
++    h->kicked = false;
++    adb_close(h->fd);
++    // Notify usb_adb_open_thread to open a new connection.
++    h->lock.lock();
++    h->open_new_connection = true;
++    h->lock.unlock();
++    h->notify.notify_one();
++}
++
++static void usb_adb_init()
++{
++    usb_handle* h = new usb_handle();
++
++    h->write = usb_adb_write;
++    h->read = usb_adb_read;
++    h->kick = usb_adb_kick;
++    h->close = usb_adb_close;
++
++    // Open the file /dev/android_adb_enable to trigger
++    // the enabling of the adb USB function in the kernel.
++    // We never touch this file again - just leave it open
++    // indefinitely so the kernel will know when we are running
++    // and when we are not.
++    int fd = unix_open("/dev/android_adb_enable", O_RDWR);
++    if (fd < 0) {
++       D("failed to open /dev/android_adb_enable");
++    } else {
++        close_on_exec(fd);
++    }
++
++    D("[ usb_init - starting thread ]");
++    std::thread(usb_adb_open_thread, h).detach();
++}
++#else
++
+ static struct func_desc fs_descriptors = {
+     .intf = {
+         .bLength = sizeof(fs_descriptors.intf),
+@@ -458,11 +592,16 @@ static void usb_ffs_init() {
+     D("[ usb_init - starting thread ]");
+     std::thread(usb_ffs_open_thread, h).detach();
+ }
++#endif
+ 
+ void usb_init() {
+     dummy_fd = adb_open("/dev/null", O_WRONLY);
+     CHECK_NE(dummy_fd, -1);
++#ifdef LEGACY_ADB_INTERFACE
++    usb_adb_init();
++#else
+     usb_ffs_init();
++#endif
+ }
+ 
+ int usb_write(usb_handle* h, const void* data, int len) {
+diff --git a/system/core/adb/daemon/usb.h b/system/core/adb/daemon/usb.h
+index 55b59952f..431591a3f 100644
+--- a/system/core/adb/daemon/usb.h
++++ b/system/core/adb/daemon/usb.h
+@@ -34,6 +34,11 @@ struct usb_handle {
+     void (*kick)(usb_handle* h);
+     void (*close)(usb_handle* h);
+ 
++#ifdef LEGACY_ADB_INTERFACE
++    // Legacy f_adb
++    int fd = -1;
++#endif
++
+     // FunctionFS
+     int control = -1;
+     int bulk_out = -1; /* "out" from the host's perspective => source for adbd */
+diff --git a/system/core/init/Android.bp b/system/core/init/Android.bp
+index 8483510c4..1ca950169 100644
+--- a/system/core/init/Android.bp
++++ b/system/core/init/Android.bp
+@@ -32,6 +32,7 @@ cc_defaults {
+         "-DWORLD_WRITABLE_KMSG=0",
+         "-DDUMP_ON_UMOUNT_FAILURE=0",
+         "-DSHUTDOWN_ZERO_TIMEOUT=0",
++	"-Ofast",
+     ],
+     product_variables: {
+         debuggable: {
+@@ -46,12 +47,14 @@ cc_defaults {
+                 "-DWORLD_WRITABLE_KMSG=1",
+                 "-UDUMP_ON_UMOUNT_FAILURE",
+                 "-DDUMP_ON_UMOUNT_FAILURE=1",
++		"-Ofast",
+             ],
+         },
+         eng: {
+             cppflags: [
+                 "-USHUTDOWN_ZERO_TIMEOUT",
+                 "-DSHUTDOWN_ZERO_TIMEOUT=1",
++		"-Ofast",
+             ],
+         },
+     },
+diff --git a/system/core/init/Android.mk b/system/core/init/Android.mk
+index f8d1d22d7..2cc8145f9 100644
+--- a/system/core/init/Android.mk
++++ b/system/core/init/Android.mk
+@@ -8,7 +8,7 @@ ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
+ init_options += \
+     -DALLOW_LOCAL_PROP_OVERRIDE=1 \
+     -DALLOW_PERMISSIVE_SELINUX=1 \
+-    -DREBOOT_BOOTLOADER_ON_PANIC=1 \
++    -DREBOOT_BOOTLOADER_ON_PANIC=0 \
+     -DDUMP_ON_UMOUNT_FAILURE=1
+ else
+ init_options += \
+diff --git a/system/core/init/builtins.cpp b/system/core/init/builtins.cpp
+index bb1b5eab0..33ee2d9e7 100644
+--- a/system/core/init/builtins.cpp
++++ b/system/core/init/builtins.cpp
+@@ -66,6 +66,8 @@
+ 
+ using namespace std::literals::string_literals;
+ 
++using android::base::StringPrintf;
++
+ #define chmod DO_NOT_USE_CHMOD_USE_FCHMODAT_SYMLINK_NOFOLLOW
+ 
+ namespace android {
+@@ -131,24 +133,44 @@ static int do_class_start(const std::vector<std::string>& args) {
+          */
+     ServiceManager::GetInstance().
+         ForEachServiceInClass(args[1], [] (Service* s) { s->StartIfNotDisabled(); });
++
++    std::string prop_name = StringPrintf("class_start:%s", args[1].c_str());
++    if (prop_name.length() < PROP_NAME_MAX) {
++        ActionManager::GetInstance().QueueEventTrigger(prop_name);
++    }
+     return 0;
+ }
+ 
+ static int do_class_stop(const std::vector<std::string>& args) {
+     ServiceManager::GetInstance().
+         ForEachServiceInClass(args[1], [] (Service* s) { s->Stop(); });
++
++    std::string prop_name = StringPrintf("class_stop:%s", args[1].c_str());
++    if (prop_name.length() < PROP_NAME_MAX) {
++        ActionManager::GetInstance().QueueEventTrigger(prop_name);
++    }
+     return 0;
+ }
+ 
+ static int do_class_reset(const std::vector<std::string>& args) {
+     ServiceManager::GetInstance().
+         ForEachServiceInClass(args[1], [] (Service* s) { s->Reset(); });
++
++    std::string prop_name = StringPrintf("class_reset:%s", args[1].c_str());
++    if (prop_name.length() < PROP_NAME_MAX) {
++        ActionManager::GetInstance().QueueEventTrigger(prop_name);
++    }
+     return 0;
+ }
+ 
+ static int do_class_restart(const std::vector<std::string>& args) {
+     ServiceManager::GetInstance().
+         ForEachServiceInClass(args[1], [] (Service* s) { s->Restart(); });
++
++    std::string prop_name = StringPrintf("class_restart:%s", args[1].c_str());
++    if (prop_name.length() < PROP_NAME_MAX) {
++        ActionManager::GetInstance().QueueEventTrigger(prop_name);
++    }
+     return 0;
+ }
+ 
+diff --git a/system/core/init/reboot.cpp b/system/core/init/reboot.cpp
+index 5c7ddf185..f3e0f2051 100644
+--- a/system/core/init/reboot.cpp
++++ b/system/core/init/reboot.cpp
+@@ -314,8 +314,8 @@ static UmountStat TryUmountAndFsck(bool runFsck, std::chrono::milliseconds timeo
+     Timer t;
+     std::vector<MountEntry> block_devices;
+     std::vector<MountEntry> emulated_devices;
+-
+-    TurnOffBacklight();  // this part can take time. save power.
++    //below code move to the place before killing service
++    //TurnOffBacklight();  // this part can take time. save power.
+ 
+     if (runFsck && !FindPartitionsToUmount(&block_devices, &emulated_devices, false)) {
+         return UMOUNT_STAT_ERROR;
+@@ -431,7 +431,8 @@ void DoReboot(unsigned int cmd, const std::string& reason, const std::string& re
+         LOG(INFO) << "Terminating running services took " << t
+                   << " with remaining services:" << service_count;
+     }
+-
++    //turn off backlight before killing services to avoid screen stuck
++    TurnOffBacklight();  // this part can take time. save power.
+     // minimum safety steps before restarting
+     // 2. kill all services except ones that are necessary for the shutdown sequence.
+     ServiceManager::GetInstance().ForEachService([](Service* s) {
+diff --git a/system/core/init/service.cpp b/system/core/init/service.cpp
+index 7c50165c1..7d13bd373 100644
+--- a/system/core/init/service.cpp
++++ b/system/core/init/service.cpp
+@@ -101,8 +101,22 @@ static void SetUpPidNamespace(const std::string& service_name) {
+ 
+     // It's OK to LOG(FATAL) in this function since it's running in the first
+     // child process.
+-    if (mount("", "/proc", "proc", kSafeFlags | MS_REMOUNT, "") == -1) {
+-        PLOG(FATAL) << "couldn't remount(/proc) for " << service_name;
++
++    // Recursively remount / as slave like zygote does so unmounting and mounting /proc
++    // doesn't interfere with the parent namespace's /proc mount. This will also
++    // prevent any other mounts/unmounts initiated by the service from interfering
++    // with the parent namespace but will still allow mount events from the parent
++    // namespace to propagate to the child.
++    if (mount("rootfs", "/", nullptr, (MS_SLAVE | MS_REC), nullptr) == -1) {
++        PLOG(FATAL) << "couldn't remount(/) recursively as slave for " << service_name;
++    }
++    // umount() then mount() /proc.
++    // Note that it is not sufficient to mount with MS_REMOUNT.
++    if (umount("/proc") == -1) {
++        PLOG(FATAL) << "couldn't umount(/proc) for " << service_name;
++    }
++    if (mount("", "/proc", "proc", kSafeFlags, "") == -1) {
++        PLOG(FATAL) << "couldn't mount(/proc) for " << service_name;
+     }
+ 
+     if (prctl(PR_SET_NAME, service_name.c_str()) == -1) {
+diff --git a/system/core/libprocinfo/Android.bp b/system/core/libprocinfo/Android.bp
+index b568ee5da..bafdef6c5 100644
+--- a/system/core/libprocinfo/Android.bp
++++ b/system/core/libprocinfo/Android.bp
+@@ -18,6 +18,7 @@ libprocinfo_cppflags = [
+     "-Wall",
+     "-Wextra",
+     "-Werror",
++    "-Ofast",
+ ]
+ 
+ cc_library {
+diff --git a/system/core/libsuspend/Android.bp b/system/core/libsuspend/Android.bp
+index 32f1e1ff8..dc67580d8 100644
+--- a/system/core/libsuspend/Android.bp
++++ b/system/core/libsuspend/Android.bp
+@@ -9,6 +9,7 @@ cc_library {
+ 
+     srcs: [
+         "autosuspend.c",
++        "autosuspend_earlysuspend.c",
+         "autosuspend_wakeup_count.c",
+     ],
+     export_include_dirs: ["include"],
+@@ -19,6 +20,7 @@ cc_library {
+     ],
+     cflags: [
+         "-Werror",
++	"-Ofast",
+         // "-DLOG_NDEBUG=0",
+     ],
+ }
+diff --git a/system/core/libsuspend/autosuspend.c b/system/core/libsuspend/autosuspend.c
+index 96e1c10d0..342d0d8fc 100644
+--- a/system/core/libsuspend/autosuspend.c
++++ b/system/core/libsuspend/autosuspend.c
+@@ -34,6 +34,11 @@ static int autosuspend_init(void)
+         return 0;
+     }
+ 
++    autosuspend_ops = autosuspend_earlysuspend_init();
++    if (autosuspend_ops) {
++        goto out;
++    }
++
+     autosuspend_ops = autosuspend_wakeup_count_init();
+     if (autosuspend_ops) {
+         goto out;
+diff --git a/system/core/libsuspend/autosuspend_earlysuspend.c b/system/core/libsuspend/autosuspend_earlysuspend.c
+new file mode 100644
+index 000000000..809ee825e
+--- /dev/null
++++ b/system/core/libsuspend/autosuspend_earlysuspend.c
+@@ -0,0 +1,219 @@
++/*
++ * Copyright (C) 2012 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#define LOG_TAG "libsuspend"
++
++#include <errno.h>
++#include <fcntl.h>
++#include <pthread.h>
++#include <stdbool.h>
++#include <stddef.h>
++#include <string.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++#include <log/log.h>
++
++#include "autosuspend_ops.h"
++
++#define EARLYSUSPEND_SYS_POWER_STATE "/sys/power/state"
++#define EARLYSUSPEND_WAIT_FOR_FB_SLEEP "/sys/power/wait_for_fb_sleep"
++#define EARLYSUSPEND_WAIT_FOR_FB_WAKE "/sys/power/wait_for_fb_wake"
++
++static int sPowerStatefd;
++static const char *pwr_state_mem = "mem";
++static const char *pwr_state_on = "on";
++static pthread_t earlysuspend_thread;
++static pthread_mutex_t earlysuspend_mutex = PTHREAD_MUTEX_INITIALIZER;
++static pthread_cond_t earlysuspend_cond = PTHREAD_COND_INITIALIZER;
++static bool wait_for_earlysuspend;
++static enum {
++    EARLYSUSPEND_ON,
++    EARLYSUSPEND_MEM,
++} earlysuspend_state = EARLYSUSPEND_ON;
++
++int wait_for_fb_wake(void)
++{
++    int err = 0;
++    char buf;
++    int fd = TEMP_FAILURE_RETRY(open(EARLYSUSPEND_WAIT_FOR_FB_WAKE, O_RDONLY, 0));
++    // if the file doesn't exist, the error will be caught in read() below
++    err = TEMP_FAILURE_RETRY(read(fd, &buf, 1));
++    ALOGE_IF(err < 0,
++            "*** ANDROID_WAIT_FOR_FB_WAKE failed (%s)", strerror(errno));
++    close(fd);
++    return err < 0 ? err : 0;
++}
++
++static int wait_for_fb_sleep(void)
++{
++    int err = 0;
++    char buf;
++    int fd = TEMP_FAILURE_RETRY(open(EARLYSUSPEND_WAIT_FOR_FB_SLEEP, O_RDONLY, 0));
++    // if the file doesn't exist, the error will be caught in read() below
++    err = TEMP_FAILURE_RETRY(read(fd, &buf, 1));
++    ALOGE_IF(err < 0,
++            "*** ANDROID_WAIT_FOR_FB_SLEEP failed (%s)", strerror(errno));
++    close(fd);
++    return err < 0 ? err : 0;
++}
++
++static void *earlysuspend_thread_func(void __unused *arg)
++{
++    while (1) {
++        if (wait_for_fb_sleep()) {
++            ALOGE("Failed reading wait_for_fb_sleep, exiting earlysuspend thread\n");
++            return NULL;
++        }
++        pthread_mutex_lock(&earlysuspend_mutex);
++        earlysuspend_state = EARLYSUSPEND_MEM;
++        pthread_cond_signal(&earlysuspend_cond);
++        pthread_mutex_unlock(&earlysuspend_mutex);
++
++        if (wait_for_fb_wake()) {
++            ALOGE("Failed reading wait_for_fb_wake, exiting earlysuspend thread\n");
++            return NULL;
++        }
++        pthread_mutex_lock(&earlysuspend_mutex);
++        earlysuspend_state = EARLYSUSPEND_ON;
++        pthread_cond_signal(&earlysuspend_cond);
++        pthread_mutex_unlock(&earlysuspend_mutex);
++    }
++}
++static int autosuspend_earlysuspend_enable(void)
++{
++    char buf[80];
++    int ret;
++
++    ALOGV("autosuspend_earlysuspend_enable\n");
++
++    ret = write(sPowerStatefd, pwr_state_mem, strlen(pwr_state_mem));
++    if (ret < 0) {
++        strerror_r(errno, buf, sizeof(buf));
++        ALOGE("Error writing to %s: %s\n", EARLYSUSPEND_SYS_POWER_STATE, buf);
++        goto err;
++    }
++
++    if (wait_for_earlysuspend) {
++        pthread_mutex_lock(&earlysuspend_mutex);
++        while (earlysuspend_state != EARLYSUSPEND_MEM) {
++            pthread_cond_wait(&earlysuspend_cond, &earlysuspend_mutex);
++        }
++        pthread_mutex_unlock(&earlysuspend_mutex);
++    }
++
++    ALOGV("autosuspend_earlysuspend_enable done\n");
++
++    return 0;
++
++err:
++    return ret;
++}
++
++static int autosuspend_earlysuspend_disable(void)
++{
++    char buf[80];
++    int ret;
++
++    ALOGV("autosuspend_earlysuspend_disable\n");
++
++    ret = TEMP_FAILURE_RETRY(write(sPowerStatefd, pwr_state_on, strlen(pwr_state_on)));
++    if (ret < 0) {
++        strerror_r(errno, buf, sizeof(buf));
++        ALOGE("Error writing to %s: %s\n", EARLYSUSPEND_SYS_POWER_STATE, buf);
++        goto err;
++    }
++
++    if (wait_for_earlysuspend) {
++        pthread_mutex_lock(&earlysuspend_mutex);
++        while (earlysuspend_state != EARLYSUSPEND_ON) {
++            pthread_cond_wait(&earlysuspend_cond, &earlysuspend_mutex);
++        }
++        pthread_mutex_unlock(&earlysuspend_mutex);
++    }
++
++    ALOGV("autosuspend_earlysuspend_disable done\n");
++
++    return 0;
++
++err:
++    return ret;
++}
++
++struct autosuspend_ops autosuspend_earlysuspend_ops = {
++        .enable = autosuspend_earlysuspend_enable,
++        .disable = autosuspend_earlysuspend_disable,
++};
++
++void start_earlysuspend_thread(void)
++{
++    char buf[80];
++    int ret;
++
++    ret = access(EARLYSUSPEND_WAIT_FOR_FB_SLEEP, F_OK);
++    if (ret < 0) {
++        return;
++    }
++
++    ret = access(EARLYSUSPEND_WAIT_FOR_FB_WAKE, F_OK);
++    if (ret < 0) {
++        return;
++    }
++
++    wait_for_fb_wake();
++
++    ALOGI("Starting early suspend unblocker thread\n");
++    ret = pthread_create(&earlysuspend_thread, NULL, earlysuspend_thread_func, NULL);
++    if (ret) {
++        strerror_r(errno, buf, sizeof(buf));
++        ALOGE("Error creating thread: %s\n", buf);
++        return;
++    }
++
++    wait_for_earlysuspend = true;
++}
++
++struct autosuspend_ops *autosuspend_earlysuspend_init(void)
++{
++    char buf[80];
++    int ret;
++
++    sPowerStatefd = TEMP_FAILURE_RETRY(open(EARLYSUSPEND_SYS_POWER_STATE, O_RDWR));
++
++    if (sPowerStatefd < 0) {
++        strerror_r(errno, buf, sizeof(buf));
++        ALOGW("Error opening %s: %s\n", EARLYSUSPEND_SYS_POWER_STATE, buf);
++        return NULL;
++    }
++
++    ret = TEMP_FAILURE_RETRY(write(sPowerStatefd, "on", 2));
++    if (ret < 0) {
++        strerror_r(errno, buf, sizeof(buf));
++        ALOGW("Error writing 'on' to %s: %s\n", EARLYSUSPEND_SYS_POWER_STATE, buf);
++        goto err_write;
++    }
++
++    ALOGI("Selected early suspend\n");
++
++    start_earlysuspend_thread();
++
++    return &autosuspend_earlysuspend_ops;
++
++err_write:
++    close(sPowerStatefd);
++    return NULL;
++}
+diff --git a/system/core/libsysutils/Android.bp b/system/core/libsysutils/Android.bp
+index 12299c6ef..510cd2c0c 100644
+--- a/system/core/libsysutils/Android.bp
++++ b/system/core/libsysutils/Android.bp
+@@ -17,7 +17,7 @@ cc_library {
+ 
+     logtags: ["EventLogTags.logtags"],
+ 
+-    cflags: ["-Werror"],
++    cflags: ["-Werror","-Ofast"],
+ 
+     shared_libs: [
+         "libbase",
+diff --git a/system/core/libutils/Android.bp b/system/core/libutils/Android.bp
+index 91ca0ac80..1cffcd839 100644
+--- a/system/core/libutils/Android.bp
++++ b/system/core/libutils/Android.bp
+@@ -75,7 +75,7 @@ cc_library {
+         "misc.cpp",
+     ],
+ 
+-    cflags: ["-Werror"],
++    cflags: ["-Werror","-Ofast"],
+     include_dirs: ["external/safe-iop/include"],
+     header_libs: [
+         "libutils_headers",
+@@ -90,7 +90,7 @@ cc_library {
+ 
+     arch: {
+         mips: {
+-            cflags: ["-DALIGN_DOUBLE"],
++            cflags: ["-DALIGN_DOUBLE","-Ofast"],
+         },
+     },
+ 
+@@ -102,7 +102,7 @@ cc_library {
+                 "Trace.cpp",
+             ],
+ 
+-            cflags: ["-fvisibility=protected"],
++            cflags: ["-fvisibility=protected","-Ofast"],
+ 
+             shared_libs: [
+                 "libbacktrace",
+@@ -117,7 +117,7 @@ cc_library {
+         },
+ 
+         host: {
+-            cflags: ["-DLIBUTILS_NATIVE=1"],
++            cflags: ["-DLIBUTILS_NATIVE=1","-Ofast"],
+ 
+             shared: {
+                 enabled: false,
+@@ -139,7 +139,7 @@ cc_library {
+         },
+ 
+         darwin: {
+-            cflags: ["-Wno-unused-parameter"],
++            cflags: ["-Wno-unused-parameter","-Ofast"],
+         },
+ 
+         windows: {
+@@ -147,6 +147,7 @@ cc_library {
+                 // Under MinGW, ctype.h doesn't need multi-byte support
+                 "-DMB_CUR_MAX=1",
+                 "-Wno-unused-private-field",
++		"-Ofast",
+             ],
+ 
+             enabled: true,
+diff --git a/system/core/qemu_pipe/Android.bp b/system/core/qemu_pipe/Android.bp
+index 93c347beb..30bc40b4f 100644
+--- a/system/core/qemu_pipe/Android.bp
++++ b/system/core/qemu_pipe/Android.bp
+@@ -10,5 +10,5 @@ cc_library_static {
+     local_include_dirs: ["include"],
+     static_libs: ["libbase"],
+     export_include_dirs: ["include"],
+-    cflags: ["-Werror"],
++    cflags: ["-Werror","-Ofast"],
+ }
+diff --git a/system/core/rootdir/ueventd.rc b/system/core/rootdir/ueventd.rc
+index eadf219b5..0cf9253df 100644
+--- a/system/core/rootdir/ueventd.rc
++++ b/system/core/rootdir/ueventd.rc
+@@ -68,6 +68,8 @@ subsystem sound
+ # these should not be world writable
+ /dev/diag                 0660   radio      radio
+ /dev/diag_arm9            0660   radio      radio
++/dev/android_adb          0660   adb        adb
++/dev/android_adb_enable   0660   adb        adb
+ /dev/ttyMSM0              0600   bluetooth  bluetooth
+ /dev/uhid                 0660   uhid       uhid
+ /dev/uinput               0660   system     bluetooth
+diff --git a/system/core/sdcard/Android.mk b/system/core/sdcard/Android.mk
+index 7eab079f0..b7c730778 100644
+--- a/system/core/sdcard/Android.mk
++++ b/system/core/sdcard/Android.mk
+@@ -4,7 +4,7 @@ include $(CLEAR_VARS)
+ 
+ LOCAL_SRC_FILES := sdcard.cpp fuse.cpp
+ LOCAL_MODULE := libsdcard
+-LOCAL_CFLAGS := -Wall -Wno-unused-parameter -Werror
++LOCAL_CFLAGS := -Wall -Wno-unused-parameter -Werror -Ofast
+ LOCAL_SHARED_LIBRARIES := libbase libcutils libminijail libpackagelistparser
+ 
+ LOCAL_SANITIZE := integer
+@@ -15,7 +15,7 @@ include $(BUILD_STATIC_LIBRARY)
+ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES := main.c
+ LOCAL_MODULE := sdcard
+-LOCAL_CFLAGS := -Wall -Wno-unused-parameter -Werror
++LOCAL_CFLAGS := -Wall -Wno-unused-parameter -Werror -Ofast
+ LOCAL_STATIC_LIBRARIES := libsdcard
+ LOCAL_SHARED_LIBRARIES := libbase libc libcutils libminijail libpackagelistparser
+ include $(BUILD_EXECUTABLE)
+diff --git a/system/core/toolbox/Android.bp b/system/core/toolbox/Android.bp
+index 8db83276d..03c1d91bd 100644
+--- a/system/core/toolbox/Android.bp
++++ b/system/core/toolbox/Android.bp
+@@ -2,7 +2,8 @@ common_cflags = [
+     "-Werror",
+     "-Wno-unused-parameter",
+     "-Wno-unused-const-variable",
+-    "-include bsd-compatibility.h"
++    "-include bsd-compatibility.h",
++    "-Ofast",
+ ]
+ 
+ cc_library_static {
+-- 
+2.17.1
+
