@@ -197,6 +197,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     power.msm8960
 
+# Radio
+PRODUCT_PACKAGES += \
+    Stk
+
 # Ramdisk
 PRODUCT_PACKAGES += \
     fstab.qcom \
