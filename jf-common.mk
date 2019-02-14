@@ -223,6 +223,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     textclassifier.smartselection.bundle1
 
+# SPN override
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/sensitive_pn.xml:system/etc/sensitive_pn.xml
+
 # Thermal
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/thermald-8064ab.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald.conf
