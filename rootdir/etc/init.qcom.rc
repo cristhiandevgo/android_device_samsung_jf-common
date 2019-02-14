@@ -28,6 +28,21 @@
 import init.qcom.power.rc
 import init.qcom.usb.rc
 
+on late-fs 
+	write /sys/block/mmcblk0/queue/iostats 0
+	write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+	write /sys/block/mmcblk0/queue/nr_requests 256
+
+    start servicemanager
+    start surfaceflinger
+    start bootanim
+    # mount RW partitions which need run fsck
+	mount_all /fstab.qcom --late
+
+on property:sys.boot_completed=1
+    # end boot time fs tune
+    write /sys/block/sda/queue/read_ahead_kb 1024
+
 on early-init
     symlink /data/tombstones /tombstones
 
@@ -35,23 +50,25 @@ on early-init
     mkdir /firmware-mdm 0771 system system
 
     mount debugfs debugfs /sys/kernel/debug
-    chmod 0755 /sys/kernel/debug
+    chown system system /sys/kernel/debug/kgsl/proc
+    mkdir /efs 0771 system radio
+    chmod 644 /proc/cmdline
 
 on init
-
-    # Set permissions for efs partition
-    mkdir /efs 0771 system radio
-
+    # Support legacy paths
     symlink /sdcard /storage/sdcard0
 
 on fs
     wait /dev/block/platform/${ro.boot.bootdevice}
     symlink /dev/block/platform/${ro.boot.bootdevice} /dev/block/bootdevice
 
-    mount_all fstab.qcom
+    mount_all fstab.qcom --early
 
     chown system radio /dev/block/platform/msm_sdcc.1/by-name
     chmod 0775 /dev/block/platform/msm_sdcc.1/by-name
+
+    # default country code
+    setprop ro.boot.wificountrycode 00
 
 on post-fs
     # Allow writing to the kernel trace log.
@@ -77,6 +94,9 @@ on post-fs-data
 
     # Create directories for audio
     mkdir /data/misc/audio 0770 audio audio
+
+    # Create directory used by radio subsystem
+    mkdir /data/radio 0770 radio radio
 
     # Create directory for CNE
     mkdir /data/connectivity 0771 system system
@@ -116,9 +136,6 @@ on post-fs-data
 
     mkdir /data/qcks 0771 system system
 
-    # Bluetooth
-    chown bluetooth bluetooth /persist/.bt_nv.bin
-
     # WiFi TRP/TIS
     write /data/.psm.info 1
     chown root system /data/.psm.info
@@ -153,18 +170,18 @@ on early-boot
     # set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
 
-    setprop qcom.audio.init complete
-
 on boot
     # Configure bluetooth
     chmod 0660 /proc/bluetooth/sleep/lpm
     chmod 0660 /proc/bluetooth/sleep/btwrite
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chmod 0660 /dev/ttyHS0
+    chmod 0660 /efs/bluetooth/bt_addr
     chown bluetooth bluetooth /proc/bluetooth/sleep/lpm
     chown bluetooth bluetooth /proc/bluetooth/sleep/btwrite
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chown bluetooth bluetooth /dev/ttyHS0
+    chown bluetooth bluetooth /efs/bluetooth/bt_addr
 
     # Create QMUX daemon socket area
     mkdir /dev/socket/qmux_audio 2770 media audio
@@ -254,6 +271,8 @@ on boot
     chown system system /sys/class/mdnie/mdnie/playspeed
     chown system system /sys/class/mdnie/mdnie/scenario
 
+    chmod 0660 /sys/class/mdnie/mdnie/outdoor
+
     chown system system /sys/class/lcd/panel/window_type
     chown system radio /sys/class/lcd/panel/power_reduce
     chown system radio /sys/class/lcd/panel/siop_enable
@@ -271,9 +290,13 @@ on boot
     chown system radio /sys/class/sec/sec_touchkey/touchkey_firm_update
     chown system radio /sys/class/sec/sec_touchkey/touch_sensitivity
     chown system radio /sys/class/sec/sec_touchkey/flip_mode
-    chown system radio /sys/class/sec/sec_touchkey/glove_mode
+    chown system system /sys/class/sec/sec_touchkey/glove_mode
     chown system system /sys/class/sec/sec_touchkey/keypad_enable
     chmod 0660 /sys/class/sec/sec_touchkey/keypad_enable
+    
+    chmod 0660 /sys/class/sec/sec_touchkey/glove_mode
+    chown system system /sys/devices/i2c-3/3-0020/input/input3/glove_enable
+    chmod 0777 /sys/devices/i2c-3/3-0020/input/input3/glove_enable
 
     # TCP
     chown system system /sys/kernel/ipv4/tcp_wmem_min
@@ -389,10 +412,19 @@ on boot
     # RIL fast dormancy
     chown system radio /sys/class/sec/bamdmux/waketime
 
+    # Wifi firmware reload path
+    chown wifi wifi /sys/module/dhd/parameters/firmware_path
+
 service qcamerasvr /vendor/bin/mm-qcamera-daemon
     class late_start
     user camera
     group camera system inet input graphics
+
+on property:persist.sys.camera.preview=1
+    write /sys/class/leds/led_b/brightness 40
+
+on property:persist.sys.camera.preview=0
+    write /sys/class/leds/led_b/brightness 0
 
 on property:init.svc.media=restarting
     restart qcamerasvr
@@ -414,21 +446,6 @@ service kickstart /vendor/bin/qcks -i /firmware-mdm/image/
 on property:ro.baseband=mdm
     start kickstart
 
-service qseecomd /vendor/bin/qseecomd
-    class late_start
-    user system
-    group system
-
-service insthk /vendor/bin/insthk
-    class main
-    user root
-    disabled
-    oneshot
-    #seclabel u:r:insthk:s0
-
-on property:sys.qseecomd.enable=true
-    start insthk
-
 service irsc_util /vendor/bin/irsc_util "/vendor/etc/sec_config"
     class main
     user root
@@ -437,12 +454,12 @@ service irsc_util /vendor/bin/irsc_util "/vendor/etc/sec_config"
 # QMUX must be in multiple groups to support external process connections
 service qmuxd /vendor/bin/qmuxd
     class core
-    user radio
+    user root
     group radio audio bluetooth gps diag wakelock log
 
 service netmgrd /vendor/bin/netmgrd
     class main
-    group root wifi wakelock radio inet oem_2950
+    group radio system wakelock
 
 # Adjust socket buffer to enlarge TCP receive window for high bandwidth
 # but only if ro.data.large_tcp_window_size property is set.
@@ -463,8 +480,20 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
     disabled
     oneshot
 
+service conn_init /vendor/bin/hwaddrs
+    class core
+    user root
+    group system
+    oneshot
+
+on property:init.svc.conn_init=stopped
+    chmod 0644 /efs/bluetooth/bt_addr
+    chown bluetooth bluetooth /efs/bluetooth/bt_addr
+
 service macloader /vendor/bin/macloader
     class main
+    user system
+    group system wifi
     oneshot
     #seclabel u:r:macloader:s0
 
@@ -483,10 +512,15 @@ service thermald /vendor/bin/thermald
     user root
     group radio system
 
-on property:wlan.driver.status=ok
-    # Wifi firmware reload path
-    chown wifi wifi /sys/module/dhd/parameters/firmware_path
-
 # Disable boot timeout for external modems.
 on property:persist.sys.mdm.timeout_disable=1
     write /sys/module/mdm_common/parameters/disable_boot_timeout 1
+
+on property:dev.bootcomplete=1
+    setprop sys.io.scheduler "cfq"
+    rm /data/system/perfd/default_values
+
+    # Adaptive LMK
+    write /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk 1
+    write /sys/module/lowmemorykiller/parameters/minfree "18432,23040,27648,32256,55296,80640"
+    write /sys/module/lowmemorykiller/parameters/vmpressure_file_min 81250
