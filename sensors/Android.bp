@@ -5,6 +5,9 @@ cc_library_static {
         "multihal.cpp",
         "SensorEventQueue.cpp",
     ],
+    header_libs: [
+        "libhardware_headers",
+    ],
     shared_libs: [
         "liblog",
         "libcutils",
@@ -21,17 +24,17 @@ cc_library_static {
 cc_library_shared {
     name: "android.hardware.sensors@1.0-impl.jf",
     defaults: ["hidl_defaults"],
-    vendor: true,
+    proprietary: true,
     relative_install_path: "hw",
     srcs: ["Sensors.cpp"],
     shared_libs: [
+        "liblog",
+        "libcutils",
+        "libhardware",
         "libbase",
+        "libutils",
         "libhidlbase",
         "libhidltransport",
-        "liblog",
-        "libhwbinder",
-        "libutils",
-        "libhardware",
         "android.hardware.sensors@1.0",
     ],
     static_libs: [
@@ -44,17 +47,20 @@ cc_library_shared {
 cc_binary {
     name: "android.hardware.sensors@1.0-service.jf",
     defaults: ["hidl_defaults"],
-    vendor: true,
     relative_install_path: "hw",
+    vendor: true,
     init_rc: ["android.hardware.sensors@1.0-service.jf.rc"],
     srcs: ["service.cpp"],
+
     shared_libs: [
+        "liblog",
+        "libcutils",
+        "libdl",
+        "libbase",
+        "libutils",
         "libhidlbase",
         "libhidltransport",
-        "liblog",
         "libhwbinder",
-        "libutils",
-        "libhardware",
         "android.hardware.sensors@1.0",
     ],
     arch: {
